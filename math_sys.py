@@ -21,7 +21,7 @@ def solve(text):
     payload = {
         "model": _M,
         "messages": [
-            {"role": "system", "content": "Write SIMPLE Python code. At the end, write 'ANSWER:' and the number."},
+            {"role": "system", "content": "You are a math solver. Write Python code and then 'ANSWER: [number]'."},
             {"role": "user", "content": text}
         ]
     }
@@ -31,14 +31,30 @@ def solve(text):
         req = urllib.request.Request(api_url, data=json.dumps(payload).encode(), headers=headers)
         with urllib.request.urlopen(req, context=ctx) as r:
             res = json.loads(r.read().decode())
+            
+            if 'choices' not in res:
+                print(f"[!] Ошибка API: {res}")
+                return
+
             out = res['choices'][0]['message']['content']
             
-            code = out.split("```python")[1].split("```")[0].strip() if "```python" in out else out
-            ans = out.split("ANSWER:")[1].strip() if "ANSWER:" in out else "Error"
+            # Умный поиск кода
+            code = "No code found"
+            if "```python" in out:
+                code = out.split("```python")[1].split("```")[0].strip()
+            elif "```" in out:
+                code = out.split("```")[1].split("```")[0].strip()
+            
+            # Умный поиск ответа
+            ans = "Not found"
+            if "ANSWER:" in out:
+                ans = out.split("ANSWER:")[1].strip().split('\n')[0]
             
             with open("solution.py", "w", encoding="utf-8") as f:
-                f.write(code + f"\n\n# ОТВЕТ: {ans}")
+                f.write(out) # Сохраняем весь текст для анализа
             
-            print(f"\n[SYSTEM] Result: {ans}")
+            print(f"\n[SYSTEM] Done. Result: {ans}")
+            print(f"[INFO] Full response saved to solution.py")
+            
     except Exception as e:
         print(f"\n[!] Error: {e}")
