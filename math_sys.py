@@ -33,29 +33,35 @@ def solve(text):
         with urllib.request.urlopen(req, context=ctx) as r:
             res = json.loads(r.read().decode())
             
-            # Проверка на наличие контента
+            # Достаем ответ
+            out = ""
             if 'choices' in res and res['choices']:
-                out = res['choices'][0].get('message', {}).get('content', "")
-            else:
-                out = f"# Error: No response from API\n# Full response: {res}"
-
-            # Если out каким-то чудом None, превращаем в строку
+                out = res['choices'][0].get('message', {}).get('content')
+            
+            # Если ответ пустой или None, пишем об этом
             if out is None:
-                out = "# Error: Received None from API"
+                out = f"# Ошибка: АПИ прислало пустой ответ. Лог: {res}"
 
-            # Создаем файл с кодом и ответом
+            # ЖЕСТКИЙ КАСТ В СТРОКУ (исправляет твою ошибку)
+            out = str(out)
+
+            # Сохраняем файл 100%
             with open("solution.py", "w", encoding="utf-8") as f:
                 f.write(out)
             
-            # Пытаемся вытащить число для консоли (ищем после слова ANSWER)
+            # Ищем ответ для консоли
             ans_search = re.findall(r"ANSWER:\s*(\d+)", out)
-            ans = ans_search[-1] if ans_search else "Check solution.py"
+            ans = ans_search[-1] if ans_search else "Смотри файл solution.py"
             
             print(f"\n[SYSTEM] ОТВЕТ: {ans}")
-            print(f"[INFO] Решение сохранено в solution.py")
             
-    except Exception as e:
-        error_msg = f"# Connection Error: {str(e)}"
+    except urllib.error.HTTPError as e:
+        # Если OpenRouter выдает ошибку лимитов или блокировки
+        err_msg = str(e.read().decode())
         with open("solution.py", "w", encoding="utf-8") as f:
-            f.write(error_msg)
+            f.write(f"# Ошибка API: {e.code}\n{err_msg}")
+        print(f"\n[!] Ошибка сервера ({e.code}). Проверь solution.py")
+    except Exception as e:
+        with open("solution.py", "w", encoding="utf-8") as f:
+            f.write(f"# Ошибка Питона: {str(e)}")
         print(f"\n[!] Ошибка: {e}")
