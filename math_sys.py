@@ -5,7 +5,7 @@ def _get_val():
     p2 = "e743e4032fed2270cde487da31f807c7"
     return p1 + p2
 
-_M = "google/gemini-2.0-flash-exp:free"
+_M = "deepseek/deepseek-v4-flash:free"
 
 def solve(text):
     os.system('cls' if os.name == 'nt' else 'clear')
