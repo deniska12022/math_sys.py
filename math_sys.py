@@ -18,10 +18,14 @@ def solve(text):
         "User-Agent": "Mozilla/5.0"
     }
     
+    # === ЖЕСТКИЙ ПРОМПТ ПРОТИВ "РАЗМЫШЛЕНИЙ" ===
     payload = {
         "model": _M,
         "messages": [
-            {"role": "system", "content": "Solve math task. Write only Python code. At the end of the code, add a comment with the exact format: # ANSWER: [number]"},
+            {
+                "role": "system", 
+                "content": "CRITICAL: DO NOT solve the problem yourself. DO NOT perform math calculations in your head. YOUR ONLY TASK is to write a short Python script that calculates the answer. Output ONLY the Python code. At the end of the code, add a comment: # ANSWER: [number]"
+            },
             {"role": "user", "content": text}
         ]
     }
@@ -31,7 +35,7 @@ def solve(text):
     try:
         run_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
     except:
-        run_dir = os.getcwd() 
+        run_dir = os.getcwd()
         
     save_path = os.path.join(run_dir, "solution.py")
     
@@ -45,7 +49,7 @@ def solve(text):
                 out = res['choices'][0].get('message', {}).get('content')
             
             if out is None:
-                out = f"# Ошибка: АПИ прислало пустой ответ. Лог: {res}"
+                out = f"# Ошибка: Модель не выдала код (уперлась в лимит). Лог: {res}"
 
             out = str(out)
 
