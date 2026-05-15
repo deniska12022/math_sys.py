@@ -28,15 +28,12 @@ def solve(text):
     
     ctx = ssl._create_unverified_context()
     
-    # === МАГИЯ ПУТЕЙ ===
-    # Находим папку, в которой лежит файл, который ты сейчас запускаешь
     try:
         run_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
     except:
-        run_dir = os.getcwd() # Если что-то пошло не так, кидаем куда получится
+        run_dir = os.getcwd() 
         
     save_path = os.path.join(run_dir, "solution.py")
-    # ===================
     
     try:
         req = urllib.request.Request(api_url, data=json.dumps(payload).encode(), headers=headers)
@@ -52,11 +49,9 @@ def solve(text):
 
             out = str(out)
 
-            # Сохраняем файл прямо рядом с твоим скриптом
             with open(save_path, "w", encoding="utf-8") as f:
                 f.write(out)
             
-            # Ищем ответ для консоли
             ans_search = re.findall(r"ANSWER:\s*(\d+)", out)
             ans = ans_search[-1] if ans_search else "Смотри файл solution.py"
             
