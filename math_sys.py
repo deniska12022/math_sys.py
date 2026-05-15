@@ -10,7 +10,7 @@ def solve(text):
     headers = {
         "Authorization": f"Bearer {_K}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost", # Это критично для OpenRouter
+        "HTTP-Referer": "http://localhost",
         "User-Agent": "Mozilla/5.0"
     }
     
