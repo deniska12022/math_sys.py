@@ -1,6 +1,6 @@
 import urllib.request, json, ssl, os
 
-_K = "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"
+_K = "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"
 _M = "deepseek/deepseek-v4-flash:free"
 
 def solve(text):
