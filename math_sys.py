@@ -37,7 +37,7 @@ def solve(text):
             ans = out.split("ANSWER:")[1].strip() if "ANSWER:" in out else "Error"
             
             with open("solution.py", "w", encoding="utf-8") as f:
-                f.write(code + f"\n\n# RESULT: {ans}")
+                f.write(code + f"\n\n# ОТВЕТ: {ans}")
             
             print(f"\n[SYSTEM] Result: {ans}")
     except Exception as e:
