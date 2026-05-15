@@ -1,4 +1,4 @@
-import urllib.request, json, ssl, os, re
+import urllib.request, json, ssl, os, re, sys
 
 def _get_val():
     p1 = "sk-or-v1-ea44eb416aaf3555c202ce9a16284de9"
@@ -21,32 +21,39 @@ def solve(text):
     payload = {
         "model": _M,
         "messages": [
-            {"role": "system", "content": "Solve math task. Write only Python code. At the end of the code, add a comment with the answer like this: # ANSWER: [number]"},
+            {"role": "system", "content": "Solve math task. Write only Python code. At the end of the code, add a comment with the exact format: # ANSWER: [number]"},
             {"role": "user", "content": text}
         ]
     }
     
     ctx = ssl._create_unverified_context()
     
+    # === МАГИЯ ПУТЕЙ ===
+    # Находим папку, в которой лежит файл, который ты сейчас запускаешь
+    try:
+        run_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+    except:
+        run_dir = os.getcwd() # Если что-то пошло не так, кидаем куда получится
+        
+    save_path = os.path.join(run_dir, "solution.py")
+    # ===================
+    
     try:
         req = urllib.request.Request(api_url, data=json.dumps(payload).encode(), headers=headers)
         with urllib.request.urlopen(req, context=ctx) as r:
             res = json.loads(r.read().decode())
             
-            # Достаем ответ
             out = ""
             if 'choices' in res and res['choices']:
                 out = res['choices'][0].get('message', {}).get('content')
             
-            # Если ответ пустой или None, пишем об этом
             if out is None:
                 out = f"# Ошибка: АПИ прислало пустой ответ. Лог: {res}"
 
-            # ЖЕСТКИЙ КАСТ В СТРОКУ (исправляет твою ошибку)
             out = str(out)
 
-            # Сохраняем файл 100%
-            with open("solution.py", "w", encoding="utf-8") as f:
+            # Сохраняем файл прямо рядом с твоим скриптом
+            with open(save_path, "w", encoding="utf-8") as f:
                 f.write(out)
             
             # Ищем ответ для консоли
@@ -54,14 +61,14 @@ def solve(text):
             ans = ans_search[-1] if ans_search else "Смотри файл solution.py"
             
             print(f"\n[SYSTEM] ОТВЕТ: {ans}")
+            print(f"[INFO] Файл создан тут: {save_path}")
             
     except urllib.error.HTTPError as e:
-        # Если OpenRouter выдает ошибку лимитов или блокировки
         err_msg = str(e.read().decode())
-        with open("solution.py", "w", encoding="utf-8") as f:
+        with open(save_path, "w", encoding="utf-8") as f:
             f.write(f"# Ошибка API: {e.code}\n{err_msg}")
         print(f"\n[!] Ошибка сервера ({e.code}). Проверь solution.py")
     except Exception as e:
-        with open("solution.py", "w", encoding="utf-8") as f:
+        with open(save_path, "w", encoding="utf-8") as f:
             f.write(f"# Ошибка Питона: {str(e)}")
         print(f"\n[!] Ошибка: {e}")
