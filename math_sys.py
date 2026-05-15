@@ -21,7 +21,7 @@ def solve(text):
     payload = {
         "model": _M,
         "messages": [
-            {"role": "system", "content": "Solve math task. Write Python code. At the very end, write 'ANSWER: ' and only the final integer number."},
+            {"role": "system", "content": "Solve math task. Write only Python code. At the end of the code, add a comment with the answer like this: # ANSWER: [number]"},
             {"role": "user", "content": text}
         ]
     }
@@ -32,17 +32,30 @@ def solve(text):
         req = urllib.request.Request(api_url, data=json.dumps(payload).encode(), headers=headers)
         with urllib.request.urlopen(req, context=ctx) as r:
             res = json.loads(r.read().decode())
-            out = res['choices'][0]['message']['content']
             
+            # Проверка на наличие контента
+            if 'choices' in res and res['choices']:
+                out = res['choices'][0].get('message', {}).get('content', "")
+            else:
+                out = f"# Error: No response from API\n# Full response: {res}"
+
+            # Если out каким-то чудом None, превращаем в строку
+            if out is None:
+                out = "# Error: Received None from API"
+
+            # Создаем файл с кодом и ответом
             with open("solution.py", "w", encoding="utf-8") as f:
                 f.write(out)
             
-            if "ANSWER:" in out:
-                raw_ans = out.split("ANSWER:")[1].strip().split('\n')[0]
-                ans = re.sub(r'[^0-9]', '', raw_ans)
-                print(f"\n[SYSTEM] ОТВЕТ: {ans}")
-            else:
-                print("\n[SYSTEM] Готово. Проверь solution.py")
+            # Пытаемся вытащить число для консоли (ищем после слова ANSWER)
+            ans_search = re.findall(r"ANSWER:\s*(\d+)", out)
+            ans = ans_search[-1] if ans_search else "Check solution.py"
+            
+            print(f"\n[SYSTEM] ОТВЕТ: {ans}")
+            print(f"[INFO] Решение сохранено в solution.py")
             
     except Exception as e:
+        error_msg = f"# Connection Error: {str(e)}"
+        with open("solution.py", "w", encoding="utf-8") as f:
+            f.write(error_msg)
         print(f"\n[!] Ошибка: {e}")
