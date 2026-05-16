@@ -18,7 +18,6 @@ def solve(text):
         "User-Agent": "Mozilla/5.0"
     }
     
-    # === ЖЕСТКИЙ ПРОМПТ ПРОТИВ "РАЗМЫШЛЕНИЙ" ===
     payload = {
         "model": _M,
         "messages": [
