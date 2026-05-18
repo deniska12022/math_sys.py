@@ -3,6 +3,9 @@ import os
 # === ВЕСЬ КОД БИБЛИОТЕКИ ЗАШИТ ПРЯМО СЮДА ===
 MATH_SYS_CODE = """import urllib.request, json, ssl, os, re, sys
 
+# Жесткая блокировка создания папки __pycache__ внутри модуля
+sys.dont_write_bytecode = True
+
 def _get_val():
     p1 = "sk-or-v1-1d26328dddd31cf3dce4724a63ee"
     p2 = "f154a9fa0c6c008d2fdc31f4f8010c529de2"
@@ -105,8 +108,10 @@ if __name__ == "__main__":
 # ====================================================
 # 1. Запустил этот скрипт (F5). Появится файл math_sys.py рядом.
 # 2. Стер весь этот код.
-# 3. Пишешь:
+# 3. Пишешь этот код для блокировки кэша и решения задач:
 #
+# import sys
+# sys.dont_write_bytecode = True
 # import math_sys as ms
 #
 # ms.solve("""
