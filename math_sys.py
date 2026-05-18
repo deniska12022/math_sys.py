@@ -1,8 +1,8 @@
 import urllib.request, json, ssl, os, re, sys
 
 def _get_val():
-    p1 = "sk-or-v1-ea44eb416aaf3555c202ce9a16284de9"
-    p2 = "e743e4032fed2270cde487da31f807c7"
+    p1 = "sk-or-v1-1d26328dddd31cf3dce4724a63ee"
+    p2 = "f154a9fa0c6c008d2fdc31f4f8010c529de2"
     return p1 + p2
 
 _M = "deepseek/deepseek-v4-flash"
