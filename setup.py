@@ -24,13 +24,20 @@ def solve(text):
         "User-Agent": "Mozilla/5.0"
     }
     
+    # МАКСИМАЛЬНО ЖЕСТКИЙ ПРОМПТ
+    prompt_text = (
+        "CRITICAL: Write ONLY RAW Python code. VIOLATING THESE RULES CAUSES A SYSTEM FAILURE: "
+        "1. FORBIDDEN: Words as variables. YOU MUST USE ONLY SINGLE-LETTER VARIABLES (e.g., a, b, f, m, c, i). "
+        "2. FORBIDDEN: Comments. DO NOT use the '#' symbol ANYWHERE in the code to explain logic. ZERO comments. "
+        "3. FORBIDDEN: Markdown. DO NOT wrap code in ```. Just pure text. "
+        "4. If reading a file, assume it's in the current folder. "
+        "5. The ONLY allowed text at the very end of the file is: # ANSWER: [number]"
+    )
+    
     payload = {
         "model": _M,
         "messages": [
-            {
-                "role": "system", 
-                "content": "CRITICAL: DO NOT solve the problem yourself. DO NOT perform math calculations in your head. YOUR ONLY TASK is to write a short Python script that calculates the answer. Output ONLY the Python code. At the end of the code, add a comment: # ANSWER: [number]"
-            },
+            {"role": "system", "content": prompt_text},
             {"role": "user", "content": text}
         ]
     }
@@ -54,7 +61,7 @@ def solve(text):
                 out = res['choices'][0].get('message', {}).get('content')
             
             if out is None:
-                out = f"# Ошибка: Модель не выдала код (уперлась в лимит). Лог: {res}"
+                out = f"# Ошибка: Модель не выдала код. Лог: {res}"
 
             out = str(out)
 
@@ -65,7 +72,7 @@ def solve(text):
             ans = ans_search[-1] if ans_search else "Смотри файл solution.py"
             
             print(f"\\n[SYSTEM] ОТВЕТ: {ans}")
-            print(f"[INFO] Файл создан тут: {save_path}")
+            print(f"[INFO] Код создан тут: {save_path}")
             
     except urllib.error.HTTPError as e:
         err_msg = str(e.read().decode())
