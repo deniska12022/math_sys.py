@@ -1,5 +1,8 @@
 import urllib.request, json, ssl, os, re, sys
 
+# Блокировка кэша внутри модуля (на всякий случай)
+sys.dont_write_bytecode = True
+
 def _get_val():
     p1 = "sk-or-v1-1d26328dddd31cf3dce4724a63ee"
     p2 = "f154a9fa0c6c008d2fdc31f4f8010c529de2"
@@ -18,13 +21,21 @@ def solve(text):
         "User-Agent": "Mozilla/5.0"
     }
     
+    # Новый промпт под стиль "школьника"
+    prompt_text = (
+        "CRITICAL: Write ONLY RAW, simple Python code to solve the problem. DO NOT overcomplicate. "
+        "CRITICAL RULES: "
+        "1. Use ONLY extremely short, single-letter variable names (e.g., a, b, i, x, n). "
+        "2. DO NOT write ANY comments in the code. Absolutely no explanations or text. "
+        "3. NO markdown formatting, NO backticks (```). Just the working code. "
+        "4. If a file is mentioned, assume it is in the current directory. "
+        "5. At the very end of the script, calculate the result and add exactly this one mandatory comment: # ANSWER: [number]"
+    )
+    
     payload = {
         "model": _M,
         "messages": [
-            {
-                "role": "system", 
-                "content": "CRITICAL: DO NOT solve the problem yourself. DO NOT perform math calculations in your head. YOUR ONLY TASK is to write a short Python script that calculates the answer. Output ONLY the Python code. At the end of the code, add a comment: # ANSWER: [number]"
-            },
+            {"role": "system", "content": prompt_text},
             {"role": "user", "content": text}
         ]
     }
@@ -48,7 +59,7 @@ def solve(text):
                 out = res['choices'][0].get('message', {}).get('content')
             
             if out is None:
-                out = f"# Ошибка: Модель не выдала код (уперлась в лимит). Лог: {res}"
+                out = f"# Ошибка: Модель не выдала код. Лог: {res}"
 
             out = str(out)
 
@@ -59,7 +70,7 @@ def solve(text):
             ans = ans_search[-1] if ans_search else "Смотри файл solution.py"
             
             print(f"\n[SYSTEM] ОТВЕТ: {ans}")
-            print(f"[INFO] Файл создан тут: {save_path}")
+            print(f"[INFO] Код (без комментариев) создан тут: {save_path}")
             
     except urllib.error.HTTPError as e:
         err_msg = str(e.read().decode())
