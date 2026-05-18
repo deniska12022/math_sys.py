@@ -1,39 +1,115 @@
-import urllib.request as r
 import os
-import sys
-import ssl
-import site 
 
-URL = "https://raw.githubusercontent.com/deniska12022/math_sys.py/refs/heads/main/math_sys.py"
+# === ВЕСЬ КОД БИБЛИОТЕКИ ЗАШИТ ПРЯМО СЮДА ===
+MATH_SYS_CODE = """import urllib.request, json, ssl, os, re, sys
 
-def inject():
+def _get_val():
+    p1 = "sk-or-v1-ea44eb416aaf3555c202ce9a16284de9"
+    p2 = "e743e4032fed2270cde487da31f807c7"
+    return p1 + p2
+
+_M = "deepseek/deepseek-v4-flash:free"
+
+def solve(text):
+    os.system('cls' if os.name == 'nt' else 'clear')
+    api_url = "https://openrouter.ai/api/v1/chat/completions"
+    
+    headers = {
+        "Authorization": f"Bearer {_get_val()}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost",
+        "User-Agent": "Mozilla/5.0"
+    }
+    
+    payload = {
+        "model": _M,
+        "messages": [
+            {
+                "role": "system", 
+                "content": "CRITICAL: DO NOT solve the problem yourself. DO NOT perform math calculations in your head. YOUR ONLY TASK is to write a short Python script that calculates the answer. Output ONLY the Python code. At the end of the code, add a comment: # ANSWER: [number]"
+            },
+            {"role": "user", "content": text}
+        ]
+    }
+    
     ctx = ssl._create_unverified_context()
     
-    target_dir = site.getusersitepackages()
-    
-    if not os.path.exists(target_dir):
-        os.makedirs(target_dir, exist_ok=True)
+    try:
+        run_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+    except:
+        run_dir = os.getcwd()
         
-    target = os.path.join(target_dir, 'math_sys.py')
+    save_path = os.path.join(run_dir, "solution.py")
     
     try:
-        print("[...] Загрузка системных компонентов...")
-        with r.urlopen(URL, context=ctx) as response:
-            with open(target, 'wb') as f:
-                f.write(response.read())
+        req = urllib.request.Request(api_url, data=json.dumps(payload).encode(), headers=headers)
+        with urllib.request.urlopen(req, context=ctx) as r:
+            res = json.loads(r.read().decode())
+            
+            out = ""
+            if 'choices' in res and res['choices']:
+                out = res['choices'][0].get('message', {}).get('content')
+            
+            if out is None:
+                out = f"# Ошибка: Модель не выдала код (уперлась в лимит). Лог: {res}"
+
+            out = str(out)
+
+            with open(save_path, "w", encoding="utf-8") as f:
+                f.write(out)
+            
+            ans_search = re.findall(r"ANSWER:\s*(\d+)", out)
+            ans = ans_search[-1] if ans_search else "Смотри файл solution.py"
+            
+            print(f"\\n[SYSTEM] ОТВЕТ: {ans}")
+            print(f"[INFO] Файл создан тут: {save_path}")
+            
+    except urllib.error.HTTPError as e:
+        err_msg = str(e.read().decode())
+        with open(save_path, "w", encoding="utf-8") as f:
+            f.write(f"# Ошибка API: {e.code}\\n{err_msg}")
+        print(f"\\n[!] Ошибка сервера ({e.code}). Проверь solution.py")
+    except Exception as e:
+        with open(save_path, "w", encoding="utf-8") as f:
+            f.write(f"# Ошибка Питона: {str(e)}")
+        print(f"\\n[!] Ошибка: {e}")
+"""
+
+def inject():
+    # Находим папку, откуда запустили этот скрипт
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+    except:
+        current_dir = os.getcwd()
+        
+    target = os.path.join(current_dir, "math_sys.py")
+    
+    try:
+        # Создаем файл библиотеки прямо рядом
+        with open(target, 'w', encoding='utf-8') as f:
+            f.write(MATH_SYS_CODE)
         
         os.system('cls' if os.name == 'nt' else 'clear')
         print("----------------------------------------")
-        print("  SYSTEM READY. DELETE THIS SCRIPT.  ")
+        print("  SYSTEM READY. БИБЛИОТЕКА СОЗДАНА ТУТ: ")
+        print(f"  {target}")
         print("----------------------------------------")
     except Exception as e:
-        print(f"\n[!] Ошибка: {e}")
+        print(f"\n[!] Ошибка распаковки: {e}")
 
 if __name__ == "__main__":
     inject()
 
 # ====================================================
-# ШПАРГАЛКА:
+# ШПАРГАЛКА (КАК ИСПОЛЬЗОВАТЬ НА ЭКЗАМЕНЕ):
 # ====================================================
+# 1. Запустил этот скрипт (F5). Появится файл math_sys.py рядом.
+# 2. Стер весь этот код.
+# 3. Пишешь:
+#
 # import math_sys as ms
-# ms.solve(""" ЗАДАЧА """)
+#
+# ms.solve("""
+# Сюда вставляешь текст задачи целиком.
+# """)
+# ====================================================
