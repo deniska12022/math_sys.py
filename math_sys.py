@@ -4,8 +4,8 @@ import urllib.request, json, ssl, os, re, sys
 sys.dont_write_bytecode = True
 
 def _get_val():
-    p1 = "sk-or-v1-1d26328dddd31cf3dce4724a63ee"
-    p2 = "f154a9fa0c6c008d2fdc31f4f8010c529de2"
+    p1 = "api"
+    p2 = "api"
     return p1 + p2
 
 _M = "deepseek/deepseek-v4-flash"
