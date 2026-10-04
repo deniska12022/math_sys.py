@@ -47,7 +47,7 @@ def solve():
     )
 
     payload = {
-        "model": "deepseek/deepseek-chat", # Или deepseek-v4-flash, если он доступен
+        "model": "nvidia/nemotron-3.5-lightning:free", # Или deepseek-v4-flash, если он доступен
         "messages": [
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": text}
