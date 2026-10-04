@@ -21,7 +21,7 @@ def solve(text):
         "User-Agent": "Mozilla/5.0"
     }
     
-    # Новый промпт под стиль "школьника"
+    # Новый промпт под стиль школьника
     prompt_text = (
         "CRITICAL: Write ONLY RAW, simple Python code to solve the problem. DO NOT overcomplicate. "
         "CRITICAL RULES: "
