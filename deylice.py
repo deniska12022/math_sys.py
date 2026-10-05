@@ -3,8 +3,8 @@ import json
 
 # Разделяем ключ на две части. Вставь сюда свой реальный ключ, разрезав его пополам.
 # Например, если ключ 'sk-or-v1-abc123def456', то p1 = 'sk-or-v1-abc', p2 = '123def456'
-p1 = "sk-or-v1-eba471b6df54bd7b45d17"
-p2 = "20e46bdbdd4e0fff8aa4f67d9216cb191a2123bad12"
+p1 = ""
+p2 = ""
 ApiKey = p1 + p2
 
 MODEL = "deepseek/deepseek-v4.1-flash" # Или любая другая модель из OpenRouter
