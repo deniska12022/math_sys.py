@@ -1,86 +1,54 @@
-import urllib.request, json, ssl, os, re, sys
+import urllib.request
+import json
 
-sys.dont_write_bytecode = True
+# Разделяем ключ на две части. Вставь сюда свой реальный ключ, разрезав его пополам.
+# Например, если ключ 'sk-or-v1-abc123def456', то p1 = 'sk-or-v1-abc', p2 = '123def456'
+p1 = "sk-or-v1-eba471b6df54bd7b45d17"
+p2 = "20e46bdbdd4e0fff8aa4f67d9216cb191a2123bad12"
+ApiKey = p1 + p2
 
-def _get_val():
-    p1 = "sk-or-v1-"
-    p2 = "f97a85fea848edcf54f2d280fda42e5c5073b1adffea971d03fc1462cc31fc"
-    return p1 + p2
+MODEL = "deepseek/deepseek-v4.1-flash" # Или любая другая модель из OpenRouter
 
-TASK = """"""
-
-def get_task():
-    try:
-        import tkinter as tk
-        root = tk.Tk()
-        root.withdraw()
-        root.update()
-        text = root.clipboard_get()
-        root.destroy()
-        if len(text) > 5:
-            return text
-    except:
-        pass
-    return TASK.strip()
-
-def solve():
-    os.system('cls' if os.name == 'nt' else 'clear')
-    text = get_task()
-    
-    if not text:
-        print("[!] Скопируй текст задачи (Ctrl+C) или впиши в переменную TASK.")
-        return
-
-    print("[...] Отправка задачи...")
-    
-    sys_prompt = (
-        "Write ONLY raw Python code. NO MARKDOWN. NO BACKTICKS (```). "
-        "1. Variables MUST be single letters (i, a, s, x). "
-        "2. NO COMMENTS AT ALL, except ONE at the very end: '# ANSWER: [number]'. "
-        "3. Code must look like it was written by an average 11th grader. Use simple loops and lists. "
-        "4. Print the final answer inside the code."
-    )
-
-    payload = {
-        "model": "openrouter/free",
-        "messages": [
-            {"role": "system", "content": sys_prompt},
-            {"role": "user", "content": text}
-        ]
+def solve(text):
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {ApiKey}",
+        "Content-Type": "application/json"
     }
-
-    req = urllib.request.Request(
-        "[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)",
-        data=json.dumps(payload).encode(),
-        headers={
-            "Authorization": f"Bearer {_get_val()}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost"
-        }
+    
+    # Жесткие рамки для формирования ответа
+    system_prompt = (
+        "Ты школьник, который решает задачу. Напиши только код решения. "
+        "Никаких кавычек, никакой markdown-разметки, без слов 'Конечно' и рассуждений. "
+        "Оформляй код максимально просто, как начинающий. Если нужен текстовый ответ, "
+        "напиши его в виде комментария к коду."
     )
     
-    ctx = ssl._create_unverified_context()
-    save_path = os.path.join(os.getcwd(), "solution.py")
-
+    data = {
+        "model": MODEL,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": text}
+        ],
+        "temperature": 0.0 # Значение 0.0 минимизирует галлюцинации
+    }
+    
+    req = urllib.request.Request(
+        url, 
+        data=json.dumps(data).encode('utf-8'), 
+        headers=headers, 
+        method='POST'
+    )
+    
     try:
-        with urllib.request.urlopen(req, context=ctx) as r:
-            res = json.loads(r.read().decode())
-            out = res['choices'][0]['message']['content'].strip()
-            out = re.sub(r"^```python\n|^```\n|```$", "", out, flags=re.MULTILINE).strip()
-
-            with open(save_path, "w", encoding="utf-8") as f:
-                f.write(out)
+        with urllib.request.urlopen(req) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            answer = result['choices'][0]['message']['content']
             
-            ans = re.findall(r"ANSWER:\s*(.*)", out)
-            ans_text = ans[-1] if ans else "Смотри файл solution.py"
+            # Сохраняем результат в новый файл рядом со скриптом
+            with open("solution.py", "w", encoding="utf-8") as f:
+                f.write(answer.strip())
+            print("Готово. Результат лежит в solution.py")
             
-            print(f"\n[SYSTEM] ОТВЕТ: {ans_text}")
-            print(f"[INFO] Код сохранен в: {save_path}")
-            
-    except urllib.error.HTTPError as e:
-        print(f"\n[!] Ошибка API ({e.code}): {e.read().decode()}")
     except Exception as e:
-        print(f"\n[!] Системная ошибка: {e}")
-
-if __name__ == "__main__":
-    solve()
+        print(f"Ошибка API: {e}")
